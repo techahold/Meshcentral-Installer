@@ -5,6 +5,8 @@ then
 sudo apt-get install -y lsb-core > null
 fi
 
+sudo apt-get install -y curl sudo  > null
+
 curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -  > null
 sudo apt-get update  > null
 echo "Installing MeshCentral"
