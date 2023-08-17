@@ -20,6 +20,24 @@ cd /opt/meshcentral
 npm install --save --save-exact meshcentral@1.1.9
 sudo chown ${USER}:${USER} -R /opt/meshcentral
 
+rm /opt/meshcentral/package.json
+
+mesh_pkg="$(
+  cat <<EOF
+{
+  "dependencies": {
+    "acme-client": "4.2.5",
+    "archiver": "5.3.1",
+    "meshcentral": "1.1.9",
+    "otplib": "10.2.3",
+    "pg": "8.7.1",
+    "pgtools": "0.3.2"
+  }
+}
+EOF
+)"
+echo "${mesh_pkg}" >/opt/meshcentral/package.json
+
 meshservice="$(cat << EOF
 [Unit]
 Description=MeshCentral Server
