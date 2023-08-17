@@ -17,7 +17,7 @@ sudo npm install -g npm
 sudo mkdir -p /opt/meshcentral/meshcentral-data
 sudo chown ${USER}:${USER} -R /opt/meshcentral
 cd /opt/meshcentral
-npm install meshcentral@1.1.9
+npm install meshcentral@1.1.6
 sudo chown ${USER}:${USER} -R /opt/meshcentral
 
 meshservice="$(cat << EOF
