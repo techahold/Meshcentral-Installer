@@ -20,6 +20,8 @@ cd /opt/meshcentral
 npm install meshcentral@1.1.6
 sudo chown ${USER}:${USER} -R /opt/meshcentral
 
+sed -i 's|"^1.1.6"": |"1.1.6"": |g' /opt/meshcentral/package.json
+
 meshservice="$(cat << EOF
 [Unit]
 Description=MeshCentral Server
