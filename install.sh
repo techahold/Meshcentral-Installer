@@ -7,11 +7,12 @@ fi
 
 sudo apt-get install -y curl sudo  > null
 
-curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -  > null
-sudo apt-get update  > null
 echo "Installing MeshCentral"
-sudo apt-get install -y nodejs  > null
-sudo npm install -g npm  > null
+curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt update > null
+sudo apt install -y gcc g++ make
+sudo apt install -y nodejs
+sudo npm install -g npm
 
 sudo mkdir -p /opt/meshcentral/meshcentral-data
 sudo chown ${USER}:${USER} -R /opt/meshcentral
