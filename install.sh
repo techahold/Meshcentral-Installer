@@ -138,6 +138,7 @@ cat "/opt/meshcentral/meshcentral-data/config.json" |
 mv /opt/meshcentral/meshcentral-data/configdb.json /opt/meshcentral/meshcentral-data/config.json
 
 sudo systemctl start meshcentral.service
+sleep 10
 break
 ;;
 
