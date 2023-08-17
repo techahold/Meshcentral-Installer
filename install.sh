@@ -17,10 +17,8 @@ sudo npm install -g npm
 sudo mkdir -p /opt/meshcentral/meshcentral-data
 sudo chown ${USER}:${USER} -R /opt/meshcentral
 cd /opt/meshcentral
-npm install meshcentral@1.1.6
+npm install --save --save-exact meshcentral@1.1.9
 sudo chown ${USER}:${USER} -R /opt/meshcentral
-
-sed -i 's|"^1.1.6"": |"1.1.6"": |g' /opt/meshcentral/package.json
 
 meshservice="$(cat << EOF
 [Unit]
