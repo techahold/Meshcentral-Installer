@@ -45,6 +45,11 @@ sudo systemctl daemon-reload
 sudo systemctl enable meshcentral.service
 sudo systemctl start meshcentral.service
 
+if [ -d "/opt/meshcentral/meshcentral-files/" ]; then
+  echo "Folder is there"
+  pause
+fi
+
 echo "You will now be given a choice of what database you want to use"
 
 # Choice for Database
