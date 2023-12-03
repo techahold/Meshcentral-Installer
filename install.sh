@@ -170,7 +170,8 @@ echo "Installing Postgresql"
 if [ "${ID}" = "debian" ] || [ "$OS" = "Ubuntu" ] || [ "$OS" = "Debian" ] || [ "${UPSTREAM_ID}" = "ubuntu" ] || [ "${UPSTREAM_ID}" = "debian" ]; then
     sudo apt-get install -y postgresql  > null
 elif [ "$OS" = "CentOS" ] || [ "$OS" = "RedHat" ] || [ "${UPSTREAM_ID}" = "rhel" ] || [ "${OS}" = "Almalinux" ] || [ "${UPSTREAM_ID}" = "Rocky*" ] || [ "${UPSTREAM_ID}" = "suse" ]; then
-    sudo yum install -y postgresql
+    sudo yum install -y postgresql-server
+    /usr/bin/postgresql-setup --initdb
 elif [ "${ID}" = "arch" ] || [ "${UPSTREAM_ID}" = "arch" ]; then
     sudo pacman -S postgresql
 else
@@ -181,7 +182,7 @@ sudo systemctl enable postgresql
 sudo systemctl start postgresql
 
 while ! [[ $CHECK_POSTGRES_SERVICE ]]; do
-  CHECK_POSTGRES_SERVICE=$(sudo systemctl status postgresql.service | grep "Active: active (exited)")
+  CHECK_POSTGRES_SERVICE=$(sudo systemctl status postgresql.service | grep -E "Active: active \(running\)|Active: active \(exited\)")
   echo -ne "PostgreSQL is not ready yet...${NC}\n"
   sleep 3
 done
