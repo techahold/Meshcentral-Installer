@@ -156,6 +156,8 @@ done
 
 sudo systemctl stop meshcentral
 
+echo "Installing Mongodb"
+if [ "${ID}" = "debian" ] || [ "$OS" = "Ubuntu" ] || [ "$OS" = "Debian" ] || [ "${UPSTREAM_ID}" = "ubuntu" ] || [ "${UPSTREAM_ID}" = "debian" ]; then
 if [ $(lsb_release -si | tr '[:upper:]' '[:lower:]') = "ubuntu" ]
 then
 wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
@@ -168,6 +170,17 @@ fi
 
 sudo apt-get update > null
 sudo apt-get install -y mongodb-org > null
+elif [ "$OS" = "CentOS" ] || [ "$OS" = "RedHat" ] || [ "${UPSTREAM_ID}" = "rhel" ] || [ "${OS}" = "Almalinux" ] || [ "${UPSTREAM_ID}" = "Rocky*" ] || [ "${UPSTREAM_ID}" = "suse" ]; then
+    sudo yum update -y
+    sudo yum install -y ${PREREQ} ${PREREQRPM} # git
+elif [ "${ID}" = "arch" ] || [ "${UPSTREAM_ID}" = "arch" ]; then
+    sudo pacman -Syu
+    sudo pacman -S ${PREREQ} ${PREREQARCH}
+else
+    echo "Unsupported OS"
+    exit 1
+fi
+
 sudo systemctl enable mongod
 sudo systemctl start mongod
 sed -i '/"settings": {/a "MongoDb": "mongodb://127.0.0.1:27017/meshcentral",\n"MongoDbCol": "meshcentral",' /opt/meshcentral/meshcentral-data/config.json
@@ -190,7 +203,21 @@ while ! [[ $CHECK_MESH_SERVICE2 ]]; do
 done
 
 sudo systemctl stop meshcentral
+
+echo "Installing Postgresql"
+if [ "${ID}" = "debian" ] || [ "$OS" = "Ubuntu" ] || [ "$OS" = "Debian" ] || [ "${UPSTREAM_ID}" = "ubuntu" ] || [ "${UPSTREAM_ID}" = "debian" ]; then
 sudo apt-get install -y postgresql  > null
+
+elif [ "$OS" = "CentOS" ] || [ "$OS" = "RedHat" ] || [ "${UPSTREAM_ID}" = "rhel" ] || [ "${OS}" = "Almalinux" ] || [ "${UPSTREAM_ID}" = "Rocky*" ] || [ "${UPSTREAM_ID}" = "suse" ]; then
+    sudo yum update -y
+    sudo yum install -y ${PREREQ} ${PREREQRPM} # git
+elif [ "${ID}" = "arch" ] || [ "${UPSTREAM_ID}" = "arch" ]; then
+    sudo pacman -Syu
+    sudo pacman -S ${PREREQ} ${PREREQARCH}
+else
+    echo "Unsupported OS"
+    exit 1
+fi
 sudo systemctl enable postgresql
 sudo systemctl start postgresql
 
@@ -212,7 +239,20 @@ sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE meshcentral TO ${DBUS
 
 if ! which jq >/dev/null
 then
-sudo apt-get install -y jq > null
+echo "Installing Postgresql dependencies"
+if [ "${ID}" = "debian" ] || [ "$OS" = "Ubuntu" ] || [ "$OS" = "Debian" ] || [ "${UPSTREAM_ID}" = "ubuntu" ] || [ "${UPSTREAM_ID}" = "debian" ]; then
+sudo apt-get install -y jq  > null
+
+elif [ "$OS" = "CentOS" ] || [ "$OS" = "RedHat" ] || [ "${UPSTREAM_ID}" = "rhel" ] || [ "${OS}" = "Almalinux" ] || [ "${UPSTREAM_ID}" = "Rocky*" ] || [ "${UPSTREAM_ID}" = "suse" ]; then
+    sudo yum update -y
+    sudo yum install -y ${PREREQ} ${PREREQRPM} # git
+elif [ "${ID}" = "arch" ] || [ "${UPSTREAM_ID}" = "arch" ]; then
+    sudo pacman -Syu
+    sudo pacman -S ${PREREQ} ${PREREQARCH}
+else
+    echo "Unsupported OS"
+    exit 1
+fi
 fi
 
 cat "/opt/meshcentral/meshcentral-data/config.json" |
@@ -242,7 +282,20 @@ case $DBOPT in
 
 if ! which jq >/dev/null
 then
-sudo apt-get install -y jq > null
+echo "Installing further dependencies"
+if [ "${ID}" = "debian" ] || [ "$OS" = "Ubuntu" ] || [ "$OS" = "Debian" ] || [ "${UPSTREAM_ID}" = "ubuntu" ] || [ "${UPSTREAM_ID}" = "debian" ]; then
+sudo apt-get install -y jq  > null
+
+elif [ "$OS" = "CentOS" ] || [ "$OS" = "RedHat" ] || [ "${UPSTREAM_ID}" = "rhel" ] || [ "${OS}" = "Almalinux" ] || [ "${UPSTREAM_ID}" = "Rocky*" ] || [ "${UPSTREAM_ID}" = "suse" ]; then
+    sudo yum update -y
+    sudo yum install -y ${PREREQ} ${PREREQRPM} # git
+elif [ "${ID}" = "arch" ] || [ "${UPSTREAM_ID}" = "arch" ]; then
+    sudo pacman -Syu
+    sudo pacman -S ${PREREQ} ${PREREQARCH}
+else
+    echo "Unsupported OS"
+    exit 1
+fi
 fi
 
 # DNS/SSL Setup
