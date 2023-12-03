@@ -3,7 +3,12 @@
 # Get username
 USER=$(whoami)
 
+#Get Architecture
 ARCH=$(uname -m)
+
+# Set Node Version
+NODE_MAJOR=20
+
 
 # Identify OS
 if [ -f /etc/os-release ]; then
@@ -55,19 +60,24 @@ fi
 
 # Setup prereqs for server
 # Common named prereqs
-PREREQ="curl sudo gcc g++ make nodejs"
-PREREQDEB="dnsutils ufw"
-PREREQRPM="bind-utils"
-PREREQARCH="bind"
+PREREQ="curl sudo gcc g++ make"
+PREREQDEB="nodejs"
+PREREQARCH="nodejs-lts-iron"
 
 echo "Installing prerequisites"
 if [ "${ID}" = "debian" ] || [ "$OS" = "Ubuntu" ] || [ "$OS" = "Debian" ] || [ "${UPSTREAM_ID}" = "ubuntu" ] || [ "${UPSTREAM_ID}" = "debian" ]; then
-    curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -
     sudo apt-get update
-    sudo apt-get install -y ${PREREQ} ${PREREQDEB} # git
+    sudo apt-get install -y ca-certificates curl gnupg
+    sudo mkdir -p /etc/apt/keyrings
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+    sudo apt-get update
+    sudo apt-get install -y ${PREREQ} ${PREREQDEB}
 elif [ "$OS" = "CentOS" ] || [ "$OS" = "RedHat" ] || [ "${UPSTREAM_ID}" = "rhel" ] || [ "${OS}" = "Almalinux" ] || [ "${UPSTREAM_ID}" = "Rocky*" ] || [ "${UPSTREAM_ID}" = "suse" ]; then
+    sudo yum install https://rpm.nodesource.com/pub_$NODE_MAJOR.x/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm -y --nogpgcheck
+    sudo yum install nodejs -y --setopt=nodesource-nodejs.module_hotfixes=1 --nogpgcheck
     sudo yum update -y
-    sudo yum install -y ${PREREQ} ${PREREQRPM} # git
+    sudo yum install -y ${PREREQ}
 elif [ "${ID}" = "arch" ] || [ "${UPSTREAM_ID}" = "arch" ]; then
     sudo pacman -Syu
     sudo pacman -S ${PREREQ} ${PREREQARCH}
@@ -140,58 +150,10 @@ echo "You will now be given a choice of what database you want to use"
 
 # Choice for Database
 PS3='Choose your preferred option for database server:'
-DB=("NeDB" "MongoDB" "Postgres")
+DB=("NeDB" "Postgres")
 select DBOPT in "${DB[@]}"; do
 case $DBOPT in
 "NeDB")
-break
-;;
-
-"MongoDB")
-while ! [[ $CHECK_MESH_SERVICE1 ]]; do
-  CHECK_MESH_SERVICE1=$(sudo systemctl status meshcentral.service | grep "Active: active (running)")
-  echo -ne "Meshcentral not ready yet...${NC}\n"
-  sleep 3
-done
-
-sudo systemctl stop meshcentral
-
-echo "Installing Mongodb"
-if [ "${ID}" = "debian" ] || [ "$OS" = "Ubuntu" ] || [ "$OS" = "Debian" ] || [ "${UPSTREAM_ID}" = "ubuntu" ] || [ "${UPSTREAM_ID}" = "debian" ]; then
-if [ $(lsb_release -si | tr '[:upper:]' '[:lower:]') = "ubuntu" ]
-then
-wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
-echo "deb http://repo.mongodb.org/apt/ubuntu $(lsb_release -cs)/mongodb-org/5.0" multiverse | sudo tee /etc/apt/sources.list.d/mongodb-org-5.0.list
-elif [ $(lsb_release -si | tr '[:upper:]' '[:lower:]') = "debian" ]
-then
-wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
-echo "deb http://repo.mongodb.org/apt/debian $(lsb_release -cs)/mongodb-org/5.0" main | sudo tee /etc/apt/sources.list.d/mongodb-org-5.0.list
-fi
-
-sudo apt-get update > null
-sudo apt-get install -y mongodb-org > null
-elif [ "$OS" = "CentOS" ] || [ "$OS" = "RedHat" ] || [ "${UPSTREAM_ID}" = "rhel" ] || [ "${OS}" = "Almalinux" ] || [ "${UPSTREAM_ID}" = "Rocky*" ] || [ "${UPSTREAM_ID}" = "suse" ]; then
-    sudo yum update -y
-    sudo yum install -y ${PREREQ} ${PREREQRPM} # git
-elif [ "${ID}" = "arch" ] || [ "${UPSTREAM_ID}" = "arch" ]; then
-    sudo pacman -Syu
-    sudo pacman -S ${PREREQ} ${PREREQARCH}
-else
-    echo "Unsupported OS"
-    exit 1
-fi
-
-sudo systemctl enable mongod
-sudo systemctl start mongod
-sed -i '/"settings": {/a "MongoDb": "mongodb://127.0.0.1:27017/meshcentral",\n"MongoDbCol": "meshcentral",' /opt/meshcentral/meshcentral-data/config.json
-
-while ! [[ $CHECK_MONGO_SERVICE ]]; do
-  CHECK_MONGO_SERVICE=$(sudo systemctl status mongod.service | grep "Active: active (running)")
-  echo -ne "MongoDB is not ready yet...${NC}\n"
-  sleep 3
-done
-
-sudo systemctl start meshcentral.service
 break
 ;;
 
@@ -206,14 +168,11 @@ sudo systemctl stop meshcentral
 
 echo "Installing Postgresql"
 if [ "${ID}" = "debian" ] || [ "$OS" = "Ubuntu" ] || [ "$OS" = "Debian" ] || [ "${UPSTREAM_ID}" = "ubuntu" ] || [ "${UPSTREAM_ID}" = "debian" ]; then
-sudo apt-get install -y postgresql  > null
-
+    sudo apt-get install -y postgresql  > null
 elif [ "$OS" = "CentOS" ] || [ "$OS" = "RedHat" ] || [ "${UPSTREAM_ID}" = "rhel" ] || [ "${OS}" = "Almalinux" ] || [ "${UPSTREAM_ID}" = "Rocky*" ] || [ "${UPSTREAM_ID}" = "suse" ]; then
-    sudo yum update -y
-    sudo yum install -y ${PREREQ} ${PREREQRPM} # git
+    sudo yum install -y postgresql
 elif [ "${ID}" = "arch" ] || [ "${UPSTREAM_ID}" = "arch" ]; then
-    sudo pacman -Syu
-    sudo pacman -S ${PREREQ} ${PREREQARCH}
+    sudo pacman -S postgresql
 else
     echo "Unsupported OS"
     exit 1
@@ -242,13 +201,10 @@ then
 echo "Installing Postgresql dependencies"
 if [ "${ID}" = "debian" ] || [ "$OS" = "Ubuntu" ] || [ "$OS" = "Debian" ] || [ "${UPSTREAM_ID}" = "ubuntu" ] || [ "${UPSTREAM_ID}" = "debian" ]; then
 sudo apt-get install -y jq  > null
-
 elif [ "$OS" = "CentOS" ] || [ "$OS" = "RedHat" ] || [ "${UPSTREAM_ID}" = "rhel" ] || [ "${OS}" = "Almalinux" ] || [ "${UPSTREAM_ID}" = "Rocky*" ] || [ "${UPSTREAM_ID}" = "suse" ]; then
-    sudo yum update -y
-    sudo yum install -y ${PREREQ} ${PREREQRPM} # git
+    sudo yum install -y jq
 elif [ "${ID}" = "arch" ] || [ "${UPSTREAM_ID}" = "arch" ]; then
-    sudo pacman -Syu
-    sudo pacman -S ${PREREQ} ${PREREQARCH}
+    sudo pacman -S jq
 else
     echo "Unsupported OS"
     exit 1
@@ -284,14 +240,11 @@ if ! which jq >/dev/null
 then
 echo "Installing further dependencies"
 if [ "${ID}" = "debian" ] || [ "$OS" = "Ubuntu" ] || [ "$OS" = "Debian" ] || [ "${UPSTREAM_ID}" = "ubuntu" ] || [ "${UPSTREAM_ID}" = "debian" ]; then
-sudo apt-get install -y jq  > null
-
+    sudo apt-get install -y jq  > null
 elif [ "$OS" = "CentOS" ] || [ "$OS" = "RedHat" ] || [ "${UPSTREAM_ID}" = "rhel" ] || [ "${OS}" = "Almalinux" ] || [ "${UPSTREAM_ID}" = "Rocky*" ] || [ "${UPSTREAM_ID}" = "suse" ]; then
-    sudo yum update -y
-    sudo yum install -y ${PREREQ} ${PREREQRPM} # git
+    sudo yum install -y jq
 elif [ "${ID}" = "arch" ] || [ "${UPSTREAM_ID}" = "arch" ]; then
-    sudo pacman -Syu
-    sudo pacman -S ${PREREQ} ${PREREQARCH}
+    sudo pacman -S jq
 else
     echo "Unsupported OS"
     exit 1
